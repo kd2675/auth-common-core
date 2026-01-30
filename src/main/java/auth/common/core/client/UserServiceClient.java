@@ -5,6 +5,7 @@ import auth.common.core.dto.UserDto;
 import auth.common.core.dto.UserUpdateRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
+import web.common.core.response.base.dto.ResponseDataDTO;
 
 import java.util.List;
 
@@ -20,47 +21,47 @@ public interface UserServiceClient {
      * ID로 User 조회
      */
     @GetMapping("/{id}")
-    UserDto getUserById(@PathVariable("id") Long id);
+    ResponseDataDTO<UserDto> getUserById(@PathVariable("id") Long id);
 
     /**
      * Username으로 User 조회
      */
     @GetMapping("/username/{username}")
-    UserDto getUserByUsername(@PathVariable("username") String username);
+    ResponseDataDTO<UserDto> getUserByUsername(@PathVariable("username") String username);
 
     /**
      * Email로 User 조회
      */
     @GetMapping("/email/{email}")
-    UserDto getUserByEmail(@PathVariable("email") String email);
+    ResponseDataDTO<UserDto> getUserByEmail(@PathVariable("email") String email);
 
     /**
      * 모든 User 조회
      */
     @GetMapping
-    List<UserDto> getAllUsers();
+    ResponseDataDTO<List<UserDto>> getAllUsers();
 
     /**
      * User 생성
      */
     @PostMapping
-    UserDto createUser(@RequestBody UserCreateRequest request);
+    ResponseDataDTO<UserDto> createUser(@RequestBody UserCreateRequest request);
 
     /**
      * User 수정
      */
     @PutMapping("/{id}")
-    UserDto updateUser(@PathVariable("id") Long id, @RequestBody UserUpdateRequest request);
+    ResponseDataDTO<UserDto> updateUser(@PathVariable("id") Long id, @RequestBody UserUpdateRequest request);
 
     /**
      * User 삭제
      */
     @DeleteMapping("/{id}")
-    void deleteUser(@PathVariable("id") Long id);
+    ResponseDataDTO<Void> deleteUser(@PathVariable("id") Long id);
 
     /**
      * User 존재 여부 확인
      */
     @GetMapping("/{id}/exists")
-    boolean existsById(@PathVariable("id") Long id);
+    ResponseDataDTO<Boolean> existsById(@PathVariable("id") Long id);
 }
