@@ -13,7 +13,7 @@ import java.util.List;
  * - 다른 서비스에서 User 정보 조회 시 사용
  * - auth-back-server의 /api/users API 호출
  */
-@FeignClient(name = "auth-service", path = "/api/users")
+@FeignClient(name = "auth-back-server", path = "/api/users")
 public interface UserServiceClient {
 
     /**
