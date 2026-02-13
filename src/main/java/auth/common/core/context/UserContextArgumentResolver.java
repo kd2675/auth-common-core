@@ -7,6 +7,9 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 /**
  * UserContext ArgumentResolver
  *
@@ -49,7 +52,7 @@ public class UserContextArgumentResolver implements HandlerMethodArgumentResolve
         }
 
         String userIdHeader = request.getHeader("X-User-Id");
-        String userNameHeader = request.getHeader("X-User-Name");
+        String userNameHeader = decodeUserName(request.getHeader("X-User-Name"));
         String userRoleHeader = request.getHeader("X-User-Role");
 
         Long userId = parseUserId(userIdHeader);
@@ -69,6 +72,17 @@ public class UserContextArgumentResolver implements HandlerMethodArgumentResolve
             return Long.parseLong(userIdHeader);
         } catch (NumberFormatException e) {
             return null;
+        }
+    }
+
+    private String decodeUserName(String userNameHeader) {
+        if (userNameHeader == null || userNameHeader.isEmpty()) {
+            return userNameHeader;
+        }
+        try {
+            return URLDecoder.decode(userNameHeader, StandardCharsets.UTF_8);
+        } catch (IllegalArgumentException ex) {
+            return userNameHeader;
         }
     }
 }
