@@ -1,5 +1,6 @@
 package auth.common.core.context;
 
+import auth.common.core.constant.UserRole;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -34,10 +35,24 @@ public class UserContext {
     }
 
     /**
-     * ADMIN 권한인지 확인
+     * 매장 관리자 권한인지 확인
+     */
+    public boolean isManager() {
+        return UserRole.isManager(role);
+    }
+
+    /**
+     * 운영자 권한(ADMIN)인지 확인
      */
     public boolean isAdmin() {
-        return "ADMIN".equalsIgnoreCase(role) || "ROLE_ADMIN".equalsIgnoreCase(role);
+        return UserRole.isAdmin(role);
+    }
+
+    /**
+     * 일반 사용자 권한인지 확인
+     */
+    public boolean isUser() {
+        return UserRole.isUser(role);
     }
 
     /**
