@@ -18,10 +18,10 @@ import java.util.List;
 public interface UserServiceClient {
 
     /**
-     * ID로 User 조회
+     * user_key(opaque)로 User 조회
      */
-    @GetMapping("/{id}")
-    ResponseDataDTO<UserDto> getUserById(@PathVariable("id") Long id);
+    @GetMapping("/{userKey}")
+    ResponseDataDTO<UserDto> getUserByUserKey(@PathVariable("userKey") String userKey);
 
     /**
      * Username으로 User 조회
@@ -50,18 +50,18 @@ public interface UserServiceClient {
     /**
      * User 수정
      */
-    @PutMapping("/{id}")
-    ResponseDataDTO<UserDto> updateUser(@PathVariable("id") Long id, @RequestBody UserUpdateRequest request);
+    @PutMapping("/{userKey}")
+    ResponseDataDTO<UserDto> updateUser(@PathVariable("userKey") String userKey, @RequestBody UserUpdateRequest request);
 
     /**
      * User 삭제
      */
-    @DeleteMapping("/{id}")
-    ResponseDataDTO<Void> deleteUser(@PathVariable("id") Long id);
+    @DeleteMapping("/{userKey}")
+    ResponseDataDTO<Void> deleteUser(@PathVariable("userKey") String userKey);
 
     /**
      * User 존재 여부 확인
      */
-    @GetMapping("/{id}/exists")
-    ResponseDataDTO<Boolean> existsById(@PathVariable("id") Long id);
+    @GetMapping("/{userKey}/exists")
+    ResponseDataDTO<Boolean> existsByUserKey(@PathVariable("userKey") String userKey);
 }

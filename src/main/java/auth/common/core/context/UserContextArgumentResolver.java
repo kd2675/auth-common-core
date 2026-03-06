@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * UserContext ArgumentResolver
  *
- * Gateway가 보낸 X-User-Id, X-User-Name, X-User-Role 헤더를
+ * Gateway가 보낸 X-User-Key, X-User-Name, X-User-Role 헤더를
  * UserContext 객체로 변환하여 컨트롤러에서 직접 사용할 수 있게 함
  *
  * 사용 예시:
@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
  *     if (!userContext.isAuthenticated()) {
  *         throw new AuthException("Login required");
  *     }
- *     Long userId = userContext.getUserId();
+ *     String userKey = userContext.getUserKey();
  *     // ...
  * }
  *
@@ -51,28 +51,15 @@ public class UserContextArgumentResolver implements HandlerMethodArgumentResolve
             return UserContext.builder().build();
         }
 
-        String userIdHeader = request.getHeader("X-User-Id");
+        String userKeyHeader = request.getHeader("X-User-Key");
         String userNameHeader = decodeUserName(request.getHeader("X-User-Name"));
         String userRoleHeader = request.getHeader("X-User-Role");
 
-        Long userId = parseUserId(userIdHeader);
-
         return UserContext.builder()
-                .userId(userId)
+                .userKey(emptyToNull(userKeyHeader))
                 .userName(userNameHeader)
                 .role(userRoleHeader)
                 .build();
-    }
-
-    private Long parseUserId(String userIdHeader) {
-        if (userIdHeader == null || userIdHeader.isEmpty()) {
-            return null;
-        }
-        try {
-            return Long.parseLong(userIdHeader);
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
     private String decodeUserName(String userNameHeader) {
@@ -84,5 +71,12 @@ public class UserContextArgumentResolver implements HandlerMethodArgumentResolve
         } catch (IllegalArgumentException ex) {
             return userNameHeader;
         }
+    }
+
+    private String emptyToNull(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value;
     }
 }

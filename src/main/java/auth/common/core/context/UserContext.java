@@ -9,7 +9,7 @@ import lombok.Getter;
  *
  * Gateway Offloading 패턴:
  * - Cloud-Back-Server(Gateway)가 JWT를 검증하고 다음 헤더를 추가:
- *   - X-User-Id: 사용자 ID
+ *   - X-User-Key: opaque 사용자 식별자(user.user_key)
  *   - X-User-Name: 사용자 이름
  *   - X-User-Role: 사용자 역할
  * - 모든 마이크로서비스는 이 헤더를 신뢰하고 UserContext로 사용
@@ -23,7 +23,7 @@ import lombok.Getter;
 @Builder
 public class UserContext {
 
-    private final Long userId;
+    private final String userKey;
     private final String userName;
     private final String role;
 
@@ -31,7 +31,7 @@ public class UserContext {
      * 인증된 사용자인지 확인
      */
     public boolean isAuthenticated() {
-        return userId != null;
+        return userKey != null;
     }
 
     /**
@@ -55,17 +55,11 @@ public class UserContext {
         return UserRole.isUser(role);
     }
 
-    /**
-     * 특정 사용자 ID와 일치하는지 확인
-     */
-    public boolean isOwner(Long targetUserId) {
-        return userId != null && userId.equals(targetUserId);
+    public boolean isOwner(String targetUserKey) {
+        return userKey != null && userKey.equals(targetUserKey);
     }
 
-    /**
-     * 본인이거나 ADMIN인지 확인
-     */
-    public boolean canAccess(Long targetUserId) {
-        return isAdmin() || isOwner(targetUserId);
+    public boolean canAccess(String targetUserKey) {
+        return isAdmin() || isOwner(targetUserKey);
     }
 }

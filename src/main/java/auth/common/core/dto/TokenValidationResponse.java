@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TokenValidationResponse {
     private boolean valid;
-    private Long userId;
+    private String userKey;
     private String username;
     private String role;
 }
