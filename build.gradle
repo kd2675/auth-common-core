@@ -26,12 +26,17 @@ ext {
 }
 
 dependencies {
+    implementation project(':web-common-core')
+
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // Spring Cloud OpenFeign
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // JSON serialization
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
     
     // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.12.3'

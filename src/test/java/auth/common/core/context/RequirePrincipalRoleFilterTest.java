@@ -1,6 +1,8 @@
 package auth.common.core.context;
 
 import auth.common.core.constant.UserRole;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
@@ -18,8 +20,9 @@ import static org.mockito.Mockito.when;
 
 class RequirePrincipalRoleFilterTest {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final RequestMappingHandlerMapping handlerMapping = mock(RequestMappingHandlerMapping.class);
-    private final RequirePrincipalRoleFilter filter = new RequirePrincipalRoleFilter(handlerMapping);
+    private final RequirePrincipalRoleFilter filter = new RequirePrincipalRoleFilter(handlerMapping, objectMapper);
 
     @Test
     void doFilter_userRoleWithUserKey_continuesChain() throws Exception {
@@ -42,8 +45,10 @@ class RequirePrincipalRoleFilterTest {
         filter.doFilter(request, response, new MockFilterChain());
 
         assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_FORBIDDEN);
-        assertThat(response.getContentAsString()).contains("\"success\":false");
-        assertThat(response.getContentAsString()).contains("\"code\":4030000");
+        JsonNode body = readBody(response);
+        assertThat(body.get("success").asBoolean()).isFalse();
+        assertThat(body.get("code").asInt()).isEqualTo(4030000);
+        assertThat(body.get("message").asText()).isEqualTo("Required role: USER");
     }
 
     @Test
@@ -55,7 +60,10 @@ class RequirePrincipalRoleFilterTest {
         filter.doFilter(request, response, new MockFilterChain());
 
         assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
-        assertThat(response.getContentAsString()).contains("\"code\":4010200");
+        JsonNode body = readBody(response);
+        assertThat(body.get("success").asBoolean()).isFalse();
+        assertThat(body.get("code").asInt()).isEqualTo(4010200);
+        assertThat(body.get("message").asText()).isEqualTo("Login required");
     }
 
     private MockHttpServletRequest request(String userKey, String role) {
@@ -73,6 +81,10 @@ class RequirePrincipalRoleFilterTest {
         TestController controller = new TestController();
         Method method = TestController.class.getDeclaredMethod(methodName);
         return new HandlerExecutionChain(new HandlerMethod(controller, method));
+    }
+
+    private JsonNode readBody(MockHttpServletResponse response) throws Exception {
+        return objectMapper.readTree(response.getContentAsString());
     }
 
     private static class TestController {

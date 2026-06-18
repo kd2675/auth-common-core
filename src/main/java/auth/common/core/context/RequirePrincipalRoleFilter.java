@@ -1,6 +1,7 @@
 package auth.common.core.context;
 
 import auth.common.core.constant.UserRole;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import web.common.core.response.base.dto.ResponseErrorDTO;
 import web.common.core.response.base.vo.Code;
 
 import java.io.IOException;
@@ -24,9 +26,15 @@ public class RequirePrincipalRoleFilter extends OncePerRequestFilter {
     private static final String USER_ROLE_HEADER = "X-User-Role";
 
     private final RequestMappingHandlerMapping handlerMapping;
+    private final ObjectMapper objectMapper;
 
     public RequirePrincipalRoleFilter(RequestMappingHandlerMapping handlerMapping) {
+        this(handlerMapping, new ObjectMapper());
+    }
+
+    public RequirePrincipalRoleFilter(RequestMappingHandlerMapping handlerMapping, ObjectMapper objectMapper) {
         this.handlerMapping = handlerMapping;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -86,11 +94,7 @@ public class RequirePrincipalRoleFilter extends OncePerRequestFilter {
         response.setStatus(code.getHttpStatus().value());
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(String.format(
-                "{\"success\":false,\"code\":%d,\"message\":\"%s\"}",
-                code.getCode(),
-                escapeJson(message)
-        ));
+        objectMapper.writeValue(response.getWriter(), ResponseErrorDTO.of(code, message));
     }
 
     private String formatRequiredRoles(String[] roles) {
@@ -107,15 +111,4 @@ public class RequirePrincipalRoleFilter extends OncePerRequestFilter {
         return value != null && !value.isBlank();
     }
 
-    private String escapeJson(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
-    }
 }
