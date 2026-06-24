@@ -93,7 +93,11 @@ public final class UserRole {
         }
 
         for (String allowedRole : allowedRoles) {
-            if (canonicalRole.equals(canonicalize(allowedRole))) {
+            String canonicalAllowedRole = canonicalize(allowedRole);
+            if (canonicalRole.equals(canonicalAllowedRole)) {
+                return true;
+            }
+            if (ADMIN.equals(canonicalRole) && ACCOUNT_ROLES.contains(canonicalAllowedRole)) {
                 return true;
             }
         }

@@ -37,6 +37,18 @@ class RequirePrincipalRoleFilterTest {
     }
 
     @Test
+    void doFilter_adminRoleForUserOnlyMethod_continuesChain() throws Exception {
+        MockHttpServletRequest request = request("admin-key", "ROLE_ADMIN");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+        when(handlerMapping.getHandler(request)).thenReturn(handlerExecutionChain("userOnly"));
+
+        filter.doFilter(request, response, chain);
+
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_OK);
+    }
+
+    @Test
     void doFilter_gatewayRoleForUserOnlyMethod_returnsForbidden() throws Exception {
         MockHttpServletRequest request = request("gateway-key", "ROLE_GATEWAY");
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -66,6 +78,21 @@ class RequirePrincipalRoleFilterTest {
         assertThat(body.get("message").asText()).isEqualTo("Login required");
     }
 
+    @Test
+    void doFilter_userRoleForAdminOnlyMethod_returnsForbidden() throws Exception {
+        MockHttpServletRequest request = request("user-key", "ROLE_USER");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(handlerMapping.getHandler(request)).thenReturn(handlerExecutionChain("adminOnly"));
+
+        filter.doFilter(request, response, new MockFilterChain());
+
+        assertThat(response.getStatus()).isEqualTo(HttpServletResponse.SC_FORBIDDEN);
+        JsonNode body = readBody(response);
+        assertThat(body.get("success").asBoolean()).isFalse();
+        assertThat(body.get("code").asInt()).isEqualTo(4030000);
+        assertThat(body.get("message").asText()).isEqualTo("Required role: ADMIN");
+    }
+
     private MockHttpServletRequest request(String userKey, String role) {
         MockHttpServletRequest request = new MockHttpServletRequest();
         if (userKey != null) {
@@ -91,6 +118,10 @@ class RequirePrincipalRoleFilterTest {
 
         @RequirePrincipalRole
         void userOnly() {
+        }
+
+        @RequirePrincipalRole(anyOf = {UserRole.ADMIN})
+        void adminOnly() {
         }
     }
 }

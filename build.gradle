@@ -15,7 +15,10 @@ java {
 }
 
 bootJar { enabled = false }
-jar { enabled = true }
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
 
 repositories {
     mavenCentral()
