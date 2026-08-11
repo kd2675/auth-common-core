@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.MediaType;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
@@ -68,6 +69,10 @@ public class RequirePrincipalRoleFilter extends OncePerRequestFilter {
         HandlerExecutionChain executionChain;
         try {
             executionChain = handlerMapping.getHandler(request);
+        } catch (HttpRequestMethodNotSupportedException ex) {
+            // DispatcherServlet owns the HTTP method contract. Looking up a handler from
+            // this filter must not turn its normal 405 into a ServletException/500.
+            return null;
         } catch (Exception ex) {
             throw new ServletException("Failed to resolve handler for role requirement", ex);
         }

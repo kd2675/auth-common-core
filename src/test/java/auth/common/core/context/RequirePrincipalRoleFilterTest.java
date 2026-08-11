@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -91,6 +92,20 @@ class RequirePrincipalRoleFilterTest {
         assertThat(body.get("success").asBoolean()).isFalse();
         assertThat(body.get("code").asInt()).isEqualTo(4030000);
         assertThat(body.get("message").asText()).isEqualTo("Required role: ADMIN");
+    }
+
+    @Test
+    void doFilter_wrongHttpMethod_delegatesToDispatcherWithoutWrappingAsServletException() throws Exception {
+        MockHttpServletRequest request = request("user-key", UserRole.USER);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+        when(handlerMapping.getHandler(request)).thenThrow(
+                new HttpRequestMethodNotSupportedException("POST", java.util.List.of("GET"))
+        );
+
+        filter.doFilter(request, response, chain);
+
+        assertThat(chain.getRequest()).isSameAs(request);
     }
 
     private MockHttpServletRequest request(String userKey, String role) {
