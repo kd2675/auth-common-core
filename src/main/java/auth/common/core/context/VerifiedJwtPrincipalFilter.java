@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Verifies a Bearer access token for endpoints that are called directly
@@ -37,7 +39,7 @@ public class VerifiedJwtPrincipalFilter extends OncePerRequestFilter {
 
     private final SecretKey key;
     private final String issuer;
-    private final String audience;
+    private final Set<String> audiences;
     private final ObjectMapper objectMapper;
 
     public VerifiedJwtPrincipalFilter(
@@ -48,7 +50,13 @@ public class VerifiedJwtPrincipalFilter extends OncePerRequestFilter {
     ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.issuer = issuer;
-        this.audience = audience;
+        this.audiences = Arrays.stream(audience.split(","))
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+        if (this.audiences.isEmpty()) {
+            throw new IllegalArgumentException("At least one token audience is required");
+        }
         this.objectMapper = objectMapper;
     }
 
@@ -90,9 +98,9 @@ public class VerifiedJwtPrincipalFilter extends OncePerRequestFilter {
     }
 
     private void validateAudience(Object claim) {
-        boolean matches = claim instanceof String value && audience.equals(value);
+        boolean matches = claim instanceof String value && audiences.contains(value);
         if (claim instanceof Collection<?> values) {
-            matches = values.stream().anyMatch(audience::equals);
+            matches = values.stream().anyMatch(audiences::contains);
         }
         if (!matches) {
             throw new IllegalArgumentException("Unexpected token audience");

@@ -20,7 +20,7 @@ class VerifiedJwtPrincipalFilterTest {
     private final VerifiedJwtPrincipalFilter filter = new VerifiedJwtPrincipalFilter(
             SECRET,
             "http://localhost:9000",
-            "semo-api",
+            "semo-api,muse-api",
             new ObjectMapper()
     );
 
@@ -45,6 +45,19 @@ class VerifiedJwtPrincipalFilterTest {
         filter.doFilter(new MockHttpServletRequest(), response, new MockFilterChain());
 
         assertThat(response.getStatus()).isEqualTo(401);
+    }
+
+    @Test
+    void doFilter_secondAllowedAudience_exposesVerifiedUserKey() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer " + token("muse-api", "api", "muse-user-key"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        MockFilterChain chain = new MockFilterChain();
+
+        filter.doFilter(request, response, chain);
+
+        assertThat(chain.getRequest()).isSameAs(request);
+        assertThat(request.getAttribute(VerifiedJwtPrincipalFilter.USER_KEY_ATTRIBUTE)).isEqualTo("muse-user-key");
     }
 
     @Test
