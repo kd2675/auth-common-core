@@ -37,11 +37,16 @@ import java.nio.charset.StandardCharsets;
  */
 public class UserContextArgumentResolver implements HandlerMethodArgumentResolver {
 
+    /** UserContext 타입에만 이 resolver를 적용한다. */
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         return parameter.getParameterType().equals(UserContext.class);
     }
 
+    /**
+     * Gateway가 검증 후 주입한 X-User-* 헤더를 컨트롤러용 불변 컨텍스트로 변환한다.
+     * 서비스 포트를 직접 노출하면 외부가 이 헤더를 위조할 수 있으므로 Gateway 경유가 전제다.
+     */
     @Override
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
